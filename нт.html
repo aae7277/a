@@ -3,27 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Время и Погода</title>
+  <title>Погода и Время</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
       font-family: sans-serif;
-      background: #1e1e2f;
-      color: #fff;
+      color: white;
       text-align: center;
-      padding: 50px 20px 80px; /* снизу место под подпись */
-      position: relative;
       min-height: 100vh;
-      box-sizing: border-box;
+      overflow-x: hidden;
+      background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #1a1a2e);
+      background-size: 400% 400%;
+      animation: animateBG 30s ease infinite;
     }
+
+    @keyframes animateBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
     .box {
-      background: #2e2e4d;
-      padding: 30px;
+      background: rgba(0,0,0,0.5);
+      margin: 40px auto;
+      padding: 20px;
       border-radius: 20px;
-      display: inline-block;
-      box-shadow: 0 0 10px #000;
+      box-shadow: 0 0 20px #000;
+      max-width: 600px;
     }
-    h1 { margin-bottom: 20px; }
-    .value { font-size: 2em; margin-top: 10px; }
+
+    h1 { margin-bottom: 10px; }
+    .value { font-size: 1.6em; margin-top: 10px; }
+
+    #icon {
+      font-size: 3em;
+      margin: 15px;
+    }
+
+    canvas {
+      max-width: 100%;
+      margin-top: 20px;
+    }
+
+    .forecast-text {
+      margin-top: 20px;
+      font-size: 1.1em;
+      color: #ddd;
+    }
 
     footer {
       position: fixed;
@@ -31,19 +59,65 @@
       width: 100%;
       text-align: center;
       font-size: 1em;
-      color: #aaa;
-      user-select: none;
+      color: #ccc;
       font-style: italic;
+      animation: flicker 3s infinite;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .snowflake {
+      position: fixed;
+      top: -10px;
+      color: white;
+      font-size: 1.2em;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(-10px); }
+      100% { transform: translateY(100vh); }
+    }
+
+    .shake {
+      animation: shake 0.2s infinite;
+    }
+
+    @keyframes shake {
+      0% { transform: translate(0px, 0px); }
+      25% { transform: translate(2px, -2px); }
+      50% { transform: translate(-2px, 2px); }
+      75% { transform: translate(2px, 2px); }
+      100% { transform: translate(-2px, -2px); }
+    }
+
+    iframe.map {
+      margin-top: 30px;
+      width: 100%;
+      max-width: 1000px;
+      height: 500px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
   </style>
 </head>
 <body>
+
   <div class="box">
     <h1>Текущее время</h1>
     <div id="time" class="value">Загрузка...</div>
     <h1>Погода</h1>
+    <div id="icon">⛅</div>
     <div id="weather" class="value">Загрузка...</div>
+    <canvas id="tempChart"></canvas>
+    <div id="forecast" class="forecast-text">Загрузка прогноза...</div>
   </div>
+
+  <iframe class="map" src="https://embed.windy.com/embed2.html?lat=53.9&lon=27.5667&detailLat=53.9&detailLon=27.5667&width=650&height=450&zoom=6&level=surface&overlay=rain&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&radarRange=-1"></iframe>
 
   <footer>Миланы здесь нету, спи спокойно</footer>
 
@@ -59,21 +133,85 @@
       navigator.geolocation.getCurrentPosition(pos => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
-          .then(response => response.json())
+
+        // Поменять координаты карты
+        document.querySelector("iframe.map").src =
+          `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=6&level=surface&overlay=rain&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=default&metricTemp=default&radarRange=-1`;
+
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`)
+          .then(res => res.json())
           .then(data => {
             const weather = data.current_weather;
-            document.getElementById("weather").textContent = `${weather.temperature}°C, ${weather.windspeed} км/ч`;
-          })
-          .catch(() => {
-            document.getElementById("weather").textContent = "Ошибка загрузки погоды";
+            document.getElementById("weather").textContent = `${weather.temperature}°C, ветер: ${weather.windspeed} км/ч`;
+
+            const code = weather.weathercode;
+            const icon = document.getElementById("icon");
+            if (code < 2) icon.textContent = "☀️";
+            else if (code < 3) icon.textContent = "⛅";
+            else if (code < 60) icon.textContent = "☁️";
+            else if (code < 70) icon.textContent = "🌧️";
+            else icon.textContent = "❄️";
+
+            if (code >= 60 && code < 70) {
+              document.body.classList.add("shake");
+              setTimeout(() => document.body.classList.remove("shake"), 5000);
+            }
+
+            if (code >= 70 && code < 80) {
+              for (let i = 0; i < 20; i++) {
+                let flake = document.createElement("div");
+                flake.className = "snowflake";
+                flake.textContent = "❄️";
+                flake.style.left = Math.random() * 100 + "vw";
+                flake.style.animationDuration = (3 + Math.random() * 5) + "s";
+                document.body.appendChild(flake);
+              }
+            }
+
+            const temps = data.hourly.temperature_2m.slice(0, 24);
+            const hours = data.hourly.time.slice(0, 24).map(t => new Date(t).getHours() + ":00");
+
+            new Chart(document.getElementById("tempChart"), {
+              type: 'line',
+              data: {
+                labels: hours,
+                datasets: [{
+                  label: 'Температура °C',
+                  data: temps,
+                  borderColor: '#ffcc00',
+                  backgroundColor: 'rgba(255,204,0,0.2)',
+                  tension: 0.3,
+                  pointRadius: 3,
+                }]
+              },
+              options: {
+                plugins: { legend: { display: false }},
+                scales: {
+                  x: { ticks: { color: '#fff' }},
+                  y: { ticks: { color: '#fff' }}
+                }
+              }
+            });
+
+            const maxTemp = Math.max(...temps);
+            const minTemp = Math.min(...temps);
+            let forecastText = `Сегодня от ${minTemp.toFixed(1)}°C до ${maxTemp.toFixed(1)}°C. `;
+            if (code < 2) forecastText += "Ясно.";
+            else if (code < 3) forecastText += "Переменная облачность.";
+            else if (code < 60) forecastText += "Облачно.";
+            else if (code < 70) forecastText += "Дождь.";
+            else forecastText += "Снег.";
+            document.getElementById("forecast").textContent = forecastText;
           });
-      }, () => {
-        document.getElementById("weather").textContent = "Доступ к местоположению запрещён";
       });
-    } else {
-      document.getElementById("weather").textContent = "Геолокация не поддерживается";
     }
+
+    window.addEventListener('load', () => {
+      const msg = new SpeechSynthesisUtterance("Миланы здесь нету. Спи спокойно.");
+      msg.lang = "ru-RU";
+      msg.volume = 0.5;
+      speechSynthesis.speak(msg);
+    });
   </script>
 </body>
 </html>
