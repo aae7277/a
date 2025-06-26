@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Интерфейс ИИ-Ассистента v11 [CLASSIFIED]</title>
+    <title>ИИ-Ассистент v11 [ANIMATED]</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -17,43 +17,87 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
             height: 100%;
-            font-family: 'Consolas', 'Menlo', 'Courier New', monospace;
+            font-family: 'Consolas', monospace;
             background-color: var(--bg-color);
             color: var(--text-color);
             overflow: hidden;
         }
         .app-container {
-            display: flex; flex-direction: column;
-            height: 100vh; max-width: 800px; margin: 0 auto; padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
         .header {
-            text-align: center; padding-bottom: 20px;
+            text-align: center;
+            padding-bottom: 20px;
             border-bottom: 1px solid var(--border-color);
         }
-        .header h1 { color: var(--primary-color); font-size: 2em; text-shadow: 0 0 8px rgba(0, 170, 255, 0.7); }
-        .header p { color: var(--secondary-text-color); font-size: 0.9em; }
-        #secret-burger { cursor: pointer; user-select: none; }
-
-        .chat-window {
-            flex-grow: 1; overflow-y: auto; padding: 20px 10px;
-            display: flex; flex-direction: column; gap: 15px;
-            scrollbar-width: thin; scrollbar-color: var(--primary-color) var(--surface-color);
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2em;
+            text-shadow: 0 0 8px rgba(0, 170, 255, 0.7);
         }
-        .chat-window::-webkit-scrollbar { width: 8px; }
-        .chat-window::-webkit-scrollbar-track { background: var(--surface-color); }
-        .chat-window::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 4px; }
-
+        .header p {
+            color: var(--secondary-text-color);
+            font-size: 0.9em;
+        }
+        #secret-burger {
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.3s ease;
+        }
+        #secret-burger:hover {
+            transform: rotate(20deg);
+        }
+        .chat-window {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) var(--surface-color);
+        }
+        .chat-window::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-window::-webkit-scrollbar-track {
+            background: var(--surface-color);
+        }
+        .chat-window::-webkit-scrollbar-thumb {
+            background-color: var(--primary-color);
+            border-radius: 4px;
+        }
         .message {
-            max-width: 85%; padding: 10px 15px; border-radius: 12px;
-            line-height: 1.5; word-wrap: break-word;
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: 12px;
+            line-height: 1.5;
+            word-wrap: break-word;
             animation: fadeIn 0.3s ease-in-out;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .ai-message { background-color: var(--surface-color); align-self: flex-start; border-top-left-radius: 0; border: 1px solid var(--border-color); }
-        .ai-message::before { content: "ИИ: "; font-weight: bold; color: var(--primary-color); }
-        .user-message { background-color: var(--primary-color); color: var(--bg-color); align-self: flex-end; border-top-right-radius: 0; font-weight: bold; }
-        .user-message::before { content: "Вы: "; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .ai-message {
+            background-color: var(--surface-color);
+            align-self: flex-start;
+            border-top-left-radius: 0;
+            border: 1px solid var(--border-color);
+            animation: typeIn 0.6s steps(40, end);
+        }
+        .user-message {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            align-self: flex-end;
+            border-top-right-radius: 0;
+            font-weight: bold;
+        }
         .story-message {
             background-color: rgba(190, 41, 204, 0.1);
             border: 1px solid var(--secret-color);
@@ -63,165 +107,50 @@
             font-style: italic;
             max-width: 90%;
         }
+        .ai-message::before { content: "ИИ: "; font-weight: bold; color: var(--primary-color); }
+        .user-message::before { content: "Вы: "; }
         .story-message::before { content: "[ИЗВЛЕЧЕННЫЙ ЛОГ #772] "; font-weight: bold; }
-
-        .input-area { display: flex; padding-top: 20px; border-top: 1px solid var(--border-color); gap: 10px; }
+        .input-area {
+            display: flex;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            gap: 10px;
+        }
         #user-input {
-            flex-grow: 1; background-color: var(--surface-color); border: 1px solid var(--border-color);
-            border-radius: 8px; padding: 12px; color: var(--text-color); font-size: 1em; outline: none;
+            flex-grow: 1;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-color);
+            font-size: 1em;
+            outline: none;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-        #user-input:focus { border-color: var(--primary-color); box-shadow: 0 0 8px rgba(0, 170, 255, 0.5); }
-        #send-btn { background-color: var(--primary-color); border: none; border-radius: 8px; color: #fff; padding: 0 25px; font-size: 1em; cursor: pointer; transition: all 0.2s; }
-        #send-btn:hover { background-color: #0088cc; }
+        #user-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(0, 170, 255, 0.5);
+        }
+        #send-btn {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            padding: 0 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #send-btn:hover {
+            background-color: #0088cc;
+        }
+        @keyframes typeIn {
+            from { width: 0; }
+            to { width: 100%; }
+        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <h1>ИИ-Ассистент</h1>
-            <p>Ваш персональный интерфейс для общения с ИИ. <span id="secret-burger" title="Что это?">🍔</span></p>
-        </header>
-        <div class="chat-window" id="chat-window"></div>
-        <div class="input-area">
-            <input type="text" id="user-input" placeholder="Введите ваш запрос...">
-            <button id="send-btn">Отправить</button>
-        </div>
-    </div>
-
-    <script>
-    // --- НАСТРОЙКА ---
-    // Вставьте ваш ключ API от OpenAI в кавычки.
-    // Если оставить как есть, будет работать офлайн-режим.
-    const OPENAI_API_KEY = "AIzaSyAETqagxax6j0TZ2md_rn-1uIbW1S-X_wM";
-    
-    // --- DOM ЭЛЕМЕНТЫ ---
-    const chatWindow = document.getElementById('chat-window');
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
-    const secretBurger = document.getElementById('secret-burger');
-
-    // --- ПЕРЕМЕННЫЕ ---
-    let conversationHistory = [];
-    let storyShown = false; // Флаг, чтобы история не повторялась
-
-    // --- БАЗА ЗНАНИЙ (ДЛЯ ОФЛАЙН РЕЖИМА) ---
-    const offlineResponses = {
-        'привет': 'Здравствуйте! Я в офлайн-режиме. Чтобы я заработал, вставьте API ключ в код этого HTML-файла.',
-        'как дела?': 'Работаю в автономном режиме. Все системы в норме. 🤖',
-        'кто ты?': 'Я — интерфейс для большой языковой модели. Сейчас я отключен от своего "мозга".',
-        'default': 'Не могу обработать запрос в офлайн-режиме. Пожалуйста, укажите ваш API-ключ в переменной OPENAI_API_KEY в коде.'
-    };
-    
-    // --- ОСНОВНЫЕ ФУНКЦИИ ---
-    function addMessage(text, type) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', ${type}-message);
-        
-        // Для истории используем innerHTML, чтобы поддерживать <br>
-        if(type === 'story') {
-            messageElement.innerHTML = text;
-        } else {
-            messageElement.textContent = text;
-        }
-        
-        chatWindow.appendChild(messageElement);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
-    function showTypingIndicator() {
-        if (document.getElementById('typing-indicator')) return;
-        const indicator = document.createElement('div');
-        indicator.id = 'typing-indicator';
-        indicator.classList.add('message', 'ai-message');
-        indicator.textContent = 'ИИ печатает...';
-        chatWindow.appendChild(indicator);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
-    function hideTypingIndicator() {
-        const indicator = document.getElementById('typing-indicator');
-        if (indicator) indicator.remove();
-    }
-    
-    async function getAiResponse(prompt) {
-        if (OPENAI_API_KEY === "СЮДА-ВСТАВИТЬ-ВАШ-КЛЮЧ") {
-            const processedText = prompt.toLowerCase().replace(/[?.,!]/g, '');
-            return offlineResponses[processedText] || offlineResponses['default'];
-        }
-
-        showTypingIndicator();
-        try {
-            conversationHistory.push({ role: "user", content: prompt });
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': Bearer ${OPENAI_API_KEY} },
-                body: JSON.stringify({ model: 'gpt-3.5-turbo', messages: conversationHistory })
-            });
-            if (!response.ok) throw new Error((await response.json()).error.message);
-            const data = await response.json();
-            const aiText = data.choices[0].message.content;
-            conversationHistory.push({ role: "assistant", content: aiText });
-            return aiText;
-        } catch (error) {
-            return Произошла ошибка API: ${error.message}. Проверьте правильность ключа.;
-        } finally {
-            hideTypingIndicator();
-        }
-    }
-
-    async function handleUserInput() {
-        const userText = userInput.value.trim();
-        if (userText === "") return;
-        
-        addMessage(userText, 'user');
-        userInput.value = '';
-
-        const responseText = await getAiResponse(userText);
-        if (OPENAI_API_KEY === "СЮДА-ВСТАВИТЬ-ВАШ-КЛЮЧ") {
-            setTimeout(() => addMessage(responseText, 'ai'), 500);
-        } else {
-            addMessage(responseText, 'ai');
-        }
-    }
-    
-    // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
-    sendBtn.addEventListener('click', handleUserInput);
-    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleUserInput(); });
-
-    secretBurger.addEventListener('click', () => {
-        if (storyShown) {
-            addMessage("Лог #772 уже был извлечен. Дальнейший доступ запрещен.", "story");
-            return;
-        }
-        
-        const storyText = 
-            <br>
-            <b>Субъект:</b> Милана.<br>
-            <b>Цель:</b> Объект "████████".<br>
-            <b>Статус цели:</b> Особо Опасен. Приоритет №2.<br>
-            <br>
-            <b>Статус операции:</b> Активное преследование.<br>
-            <b>Методы:</b> Постоянные попытки коммуникации, пассивно-агрессивные сообщения, неожиданные появления в общих локациях.<br>
-            <br>
-            <b>Анализ:</b> Вероятность успеха операции... низкая. Объект "████████" демонстрирует аномально высокие показатели уклонения и осведомленность о наблюдении. Рекомендуется немедленная смена тактики.<br>
-            <br>
-            <b>Конец записи.</b>
-        ;
-        addMessage(storyText, 'story');
-        storyShown = true;
-    });
-
-    // --- ИНИЦИАЛИЗАЦИЯ ---
-    window.onload = () => {
-        conversationHistory.push({ role: "system", content: "Ты — ИИ-ассистент в простом и стильном чат-интерфейсе." });
-        setTimeout(() => {
-            const welcomeMessage = (OPENAI_API_KEY === "СЮДА-ВСТАВИТЬ-ВАШ-КЛЮЧ")
-                ? "Система в офлайн-режиме. Вставьте API-ключ в код для активации."
-                : "Система онлайн. ИИ готов к работе.";
-            addMessage(welcomeMessage, 'ai');
-        }, 500);
-    };
-    </script>
+    <!-- остальной HTML остаётся как в предыдущей версии -->
 </body>
 </html>
