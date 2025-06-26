@@ -1,134 +1,78 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>ИИ-чат с Картой</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Время и Погода</title>
   <style>
-    * { box-sizing: border-box; }
     body {
-      margin: 0; background: #121212; color: #fff;
-      font-family: Arial, sans-serif; display: flex;
-      flex-direction: column; height: 100vh;
+      font-family: sans-serif;
+      background: #1e1e2f;
+      color: #fff;
+      text-align: center;
+      padding: 50px 20px 80px; /* снизу место под подпись */
+      position: relative;
+      min-height: 100vh;
+      box-sizing: border-box;
     }
-    #chat { flex: 1; overflow-y: auto; padding: 10px; }
-    .message {
-      display: flex; align-items: flex-start; margin-bottom: 12px;
+    .box {
+      background: #2e2e4d;
+      padding: 30px;
+      border-radius: 20px;
+      display: inline-block;
+      box-shadow: 0 0 10px #000;
     }
-    .avatar {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: #333; display: flex; justify-content: center;
-      align-items: center; margin-right: 8px; font-size: 12px;
-    }
-    .user .avatar { background: #1e88e5; }
-    .ai .avatar { background: #43a047; }
-    .bubble {
-      background: #2c2c2c; padding: 10px 14px; border-radius: 14px;
-      max-width: 80%; font-size: 15px;
-    }
-    .user .bubble { background: #1565c0; }
-    .ai .bubble { background: #2e7d32; }
-    iframe {
-      width: 100%; height: 300px;
-      border: none; margin-top: 10px; border-radius: 12px;
-    }
-    #inputBox {
-      padding: 10px; background: #1a1a1a;
-    }
-    #promptRow {
-      display: flex; gap: 8px;
-    }
-    #prompt {
-      flex: 1; padding: 10px; border: none; border-radius: 10px;
-      font-size: 16px; background: #2c2c2c; color: white;
-    }
-    #sendBtn {
-      padding: 10px 14px; background: #4caf50;
-      border: none; color: white; border-radius: 10px;
-      font-size: 16px;
+    h1 { margin-bottom: 20px; }
+    .value { font-size: 2em; margin-top: 10px; }
+
+    footer {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 1em;
+      color: #aaa;
+      user-select: none;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
-  <div id="chat"></div>
-
-  <div id="inputBox">
-    <div id="promptRow">
-      <input id="prompt" placeholder="Напишите сообщение..." onkeydown="if(event.key==='Enter')sendMessage()">
-      <button id="sendBtn" onclick="sendMessage()">⏎</button>
-    </div>
+  <div class="box">
+    <h1>Текущее время</h1>
+    <div id="time" class="value">Загрузка...</div>
+    <h1>Погода</h1>
+    <div id="weather" class="value">Загрузка...</div>
   </div>
 
+  <footer>Миланы здесь нету, спи спокойно</footer>
+
   <script>
-    const apiKey = "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";
-    const chatDiv = document.getElementById("chat");
-    const promptInput = document.getElementById("prompt");
-    let history = [];
-
-    function addMessage(role, text) {
-      const msg = document.createElement("div");
-      msg.className = `message ${role}`;
-
-      const avatar = document.createElement("div");
-      avatar.className = "avatar";
-      avatar.textContent = role === "user" ? "Вы" : "ИИ";
-
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-      bubble.textContent = text;
-
-      msg.appendChild(avatar);
-      msg.appendChild(bubble);
-      chatDiv.appendChild(msg);
-      chatDiv.scrollTop = chatDiv.scrollHeight;
+    function updateTime() {
+      const now = new Date();
+      document.getElementById("time").textContent = now.toLocaleTimeString("ru-RU");
     }
+    setInterval(updateTime, 1000);
+    updateTime();
 
-    function addMap(address) {
-      const map = document.createElement("iframe");
-      map.src = `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
-      chatDiv.appendChild(map);
-      chatDiv.scrollTop = chatDiv.scrollHeight;
-    }
-
-    function store(user, ai) {
-      history.push({ role: "user", content: user });
-      history.push({ role: "assistant", content: ai });
-    }
-
-    function buildContext(newPrompt) {
-      return [...history, { role: "user", content: newPrompt }];
-    }
-
-    async function sendMessage() {
-      const userText = promptInput.value.trim();
-      if (!userText) return;
-      addMessage("user", userText);
-      promptInput.value = "";
-
-      if (userText === "123") {
-        const fullAddress = "д. Шутовичи, Новая ул., 24, Беларусь";
-        addMessage("ai", `Вот карта по адресу: ${fullAddress}`);
-        addMap(fullAddress);
-        return;
-      }
-
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: buildContext(userText),
-          temperature: 0.7
-        })
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+          .then(response => response.json())
+          .then(data => {
+            const weather = data.current_weather;
+            document.getElementById("weather").textContent = `${weather.temperature}°C, ${weather.windspeed} км/ч`;
+          })
+          .catch(() => {
+            document.getElementById("weather").textContent = "Ошибка загрузки погоды";
+          });
+      }, () => {
+        document.getElementById("weather").textContent = "Доступ к местоположению запрещён";
       });
-
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content?.trim() || "Ошибка...";
-      addMessage("ai", reply);
-      store(userText, reply);
+    } else {
+      document.getElementById("weather").textContent = "Геолокация не поддерживается";
     }
   </script>
 </body>
